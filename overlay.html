@@ -1,0 +1,14 @@
+<!doctype html><meta charset=utf-8><title>BSCast overlay</title><link rel=stylesheet href=style.css>
+<body class=ov><div id=o></div><script src=common.js></script><script>
+// ?bg=green → fundo chroma key (captura de janela). ?only=draft|match → mostra só uma fase.
+const Q=new URLSearchParams(location.search);
+if(Q.get('bg')=='green')document.documentElement.style.background='#00ff00';
+const fit=()=>document.body.style.zoom=Q.get('bg')?innerWidth/1920:1;fit();onresize=fit;
+function draw(s){const ph=s.ph,only=Q.get('only');
+ if(!s.tm||(ph!='draft'&&ph!='match')||(only&&only!=ph)){o.innerHTML='';return}
+ const d=ph=='draft',m=s.mp[s.cur]||{},tn=s.type=='torneio';document.body.className='ov '+(d?'dr':'mt');
+ const S=t=>{const x=side(s,t,d);return d?`<div class="sd t${t}">${x.lg}<div><div class=nm>${x.nm}</div><div class=row>${x.pk}</div></div><div class=bx>${x.gb}${x.bn}</div></div>`:`<div class="sd t${t}">${x.lg}<div class=row>${x.pk}</div><div class=bx>${x.gb}${x.bn}</div></div>`};
+ const P=t=>[0,1].map(k=>`<i class="${s.rd[t]>k?'on':''}"></i>`).join('');
+ o.innerHTML=`<div class=bar>${S(0)}<div class=mid>${tn&&s.ch.l?`<img src="${s.ch.l}">`:''}${d&&tn?`<small>${s.ch.n}</small>`:''}<b>${s.sc[0]} - ${s.sc[1]}</b>${d?'':`<div class=pip>${P(0)} ${P(1)}</div>`}<small>${d&&m.mi?`<img src="${m.mi}" style="height:28px"> `:''}${m.mn||''}${d&&tn?' · Jogo '+(s.cur+1):''}</small></div>${S(1)}</div>`}
+loadBr().then(()=>sync(draw));
+</script>

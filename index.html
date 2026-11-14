@@ -1,5 +1,5 @@
 <!doctype html><meta charset=utf-8><title>Painel BSC</title><link rel=stylesheet href=style.css>
-<body class=ctl><header><img src=assets/logo1.png height=44><h1>Painel de transmissão</h1><small>OBS → Fonte de navegador 1920x1080: /overlay-draft.html e /overlay-match.html</small></header>
+<body class=ctl><header><img src=assets/logo1.png height=44><h1>Painel de transmissão</h1><button onclick="openOv()">Abrir tela secundária (overlay)</button> <small>OBS: captura de janela + chroma key verde, ou fonte de navegador com <b>overlay.html</b></small></header>
 <section id=su></section><section id=dr></section><section id=mc></section>
 <script src=common.js></script><script>
 let S={type:'torneio',bo:3,ch:{n:'',l:'assets/logo1.png'},tm:[{n:'Time Azul',l:'assets/logo1.png',p:['','','']},{n:'Time Vermelho',l:'assets/logo2.png',p:['','','']}],mp:[],cur:0,first:0,gb:false,sl:{},sc:[0,0],rd:[0,0],ph:'setup'},MAPS=[],A='',Q='',ready=0;
@@ -33,6 +33,7 @@ function K(k,d=1){const s=S;
  if(k=='a'||k=='s'){const t=k=='a'?0:1,w=s.rd[t];s.rd[t]=Math.max(0,w+d);if(d>0&&w==1)s.sc[t]++;if(d<0&&w==2)s.sc[t]--}
  if(k=='g'&&d>0){s.cur=Math.min(s.cur+1,s.mp.length-1);s.first=1-s.first;s.sl=Object.fromEntries(Object.entries(s.sl).filter(([x])=>x[0]=='g'));s.rd=[0,0];s.ph='draft';A=''}
  dr();mc();save()}
+function openOv(){open('overlay.html?bg=green','bscast_overlay','width=1280,height=720')}
 onkeydown=e=>{if(/input|select/i.test(e.target.tagName))return;K(e.key.toLowerCase(),e.shiftKey?-1:1)};
-Promise.all([loadBr(),j('maps')]).then(([,m])=>{MAPS=m.list;sync(s=>{if(ready)return;ready=1;if(s.tm)S=s;su();dr();mc()})});
+Promise.all([loadBr(),j('maps',m=>({name:m.name,imageUrl:m.imageUrl,gameMode:{name:m.gameMode.name,imageUrl:m.gameMode.imageUrl}}))]).then(([,m])=>{MAPS=m;sync(s=>{if(ready)return;ready=1;if(s.tm)S=s;su();dr();mc()})});
 </script>
