@@ -1,0 +1,38 @@
+<!doctype html><meta charset=utf-8><title>Painel BSC</title><link rel=stylesheet href=style.css>
+<body class=ctl><header><img src=assets/logo1.png height=44><h1>Painel de transmissão</h1><small>OBS → Fonte de navegador 1920x1080: /overlay-draft.html e /overlay-match.html</small></header>
+<section id=su></section><section id=dr></section><section id=mc></section>
+<script src=common.js></script><script>
+let S={type:'torneio',bo:3,ch:{n:'',l:'assets/logo1.png'},tm:[{n:'Time Azul',l:'assets/logo1.png',p:['','','']},{n:'Time Vermelho',l:'assets/logo2.png',p:['','','']}],mp:[],cur:0,first:0,gb:false,sl:{},sc:[0,0],rd:[0,0],ph:'setup'},MAPS=[],A='',Q='',ready=0;
+const $=i=>document.getElementById(i),save=()=>push(S),opt=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('');
+function up(i,cb){const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const k=256/Math.max(m.width,m.height,256),c=document.createElement('canvas');c.width=m.width*k;c.height=m.height*k;c.getContext('2d').drawImage(m,0,0,c.width,c.height);cb(c.toDataURL('image/png'));save()};m.src=r.result};r.readAsDataURL(i.files[0])}
+function su(){const n=S.type=='torneio'?S.bo:1;while(S.mp.length<n)S.mp.push({});S.mp.length=n;if(S.cur>=n)S.cur=0;
+const modes=[...new Set(MAPS.map(m=>m.gameMode.name))];
+const T=t=>`<div class=tb><b>${t?'Vermelho':'Azul'}</b><br><input value="${S.tm[t].n}" oninput="S.tm[${t}].n=this.value;save()" placeholder=Nome><br><input type=file accept=image/* onchange="up(this,d=>S.tm[${t}].l=d)">${[0,1,2].map(k=>`<br><input value="${S.tm[t].p[k]}" placeholder="Player ${k+1}" oninput="S.tm[${t}].p[${k}]=this.value;save()">`).join('')}</div>`;
+$('su').innerHTML=`<h2>1. Configuração</h2>
+<label>Tipo <select onchange="S.type=this.value;su();save()">${opt(['torneio','scrim'],S.type)}</select></label>
+${S.type=='torneio'?`<label>Série <select onchange="S.bo=+this.value;su();save()">${[3,5,7].map(v=>`<option value=${v} ${S.bo==v?'selected':''}>Md${v}</option>`).join('')}</select></label>
+<label>Campeonato <input value="${S.ch.n}" oninput="S.ch.n=this.value;save()"></label><input type=file accept=image/* onchange="up(this,d=>S.ch.l=d)">
+<label><input type=checkbox ${S.gb?'checked':''} onchange="S.gb=this.checked;dr();save()"> Bans globais (2 por time)</label>`:''}
+<label>Começa o pick <select onchange="S.first=+this.value;dr();save()"><option value=0>Azul (1,4,5)</option><option value=1 ${S.first?'selected':''}>Vermelho (1,4,5)</option></select></label><br>
+${T(0)}${T(1)}<div class=tb><b>Mapas (ordem)</b>${S.mp.map((m,i)=>`<br>${i+1}. <select onchange="S.mp[${i}]={mo:this.value};su();save()"><option></option>${opt(modes,m.mo)}</select> <select onchange="sm(${i},this.value)"><option></option>${opt(MAPS.filter(x=>x.gameMode.name==m.mo).map(x=>x.name),m.mn)}</select>`).join('')}
+${n>1?`<br><label>Primeiro mapa jogado <select onchange="S.cur=+this.value;save()">${S.mp.map((_,i)=>`<option value=${i} ${S.cur==i?'selected':''}>${i+1}</option>`)}</select></label>`:''}</div><br>
+<button onclick="S.ph='draft';dr();mc();save()">Ir para o draft</button>`}
+function sm(i,n){const m=MAPS.find(x=>x.name==n&&x.gameMode.name==S.mp[i].mo);S.mp[i]=m?{mo:S.mp[i].mo,mn:n,mi:m.gameMode.imageUrl,mm:m.imageUrl}:{mo:S.mp[i].mo};save()}
+const keys=()=>[...(S.gb?['g0_0','g0_1','g1_0','g1_1']:[]),...[0,1,2].flatMap(k=>[`b0_${k}`,`b1_${k}`]),...[0,1,2,3,4,5].map(i=>'p'+i)];
+function dr(){const f=a=>a.map(k=>`<div onclick="A='${k}';dr()" oncontextmenu="delete S.sl['${k}'];A='${k}';dr();save();return false" class="${A==k?'on':''}">${cell(S.sl[k],'t'+(k[0]=='p'?OWN(S.first)[+k[1]]:k[1]))}</div>`).join('');
+$('dr').innerHTML=`<h2>2. Draft <small>(clique no slot, depois no brawler; botão direito limpa)</small></h2>
+${S.gb?`Bans globais<div class=slots>${f(keys().filter(k=>k[0]=='g'))}</div>`:''}Bans<div class=slots>${f(keys().filter(k=>k[0]=='b'))}</div>Picks (ordem 1→6)<div class=slots>${f(keys().filter(k=>k[0]=='p'))}</div>
+<input placeholder=Buscar value="${Q}" oninput="Q=this.value;gr()"><div id=gr></div>`;gr()}
+function gr(){const u=Object.values(S.sl);$('gr').innerHTML=BRL.filter(b=>b.name.toLowerCase().includes(Q.toLowerCase())).map(b=>`<button ${u.includes(b.id)?'disabled':''} onclick="pk(${b.id})"><img src="${BR[b.id].i}">${b.name}</button>`).join('')}
+function pk(id){if(!A)A=keys().find(k=>!S.sl[k])||'';if(!A)return;S.sl[A]=id;A=keys().find(k=>!S.sl[k])||'';dr();save()}
+function mc(){$('mc').innerHTML=`<h2>3. Transmissão</h2><p>Fase: <b>${S.ph}</b> · Jogo ${S.cur+1} · Placar ${S.sc.join(' x ')} · Sets ${S.rd.join(' x ')}</p>
+<button onclick="K('n')">Draft ⇄ Partida [N]</button> <button onclick="K('q')">+Jogo Azul [Q]</button> <button onclick="K('w')">+Jogo Verm. [W]</button> <button onclick="K('a')">+Set Azul [A]</button> <button onclick="K('s')">+Set Verm. [S]</button> <button onclick="K('g')">Próximo jogo [G]</button><p><small>Shift + tecla = desfazer. 2 sets = +1 no placar geral.</small></p>`}
+function K(k,d=1){const s=S;
+ if(k=='n'&&s.ph!='setup')s.ph=s.ph=='draft'?'match':'draft';
+ if(k=='q'||k=='w'){const t=k=='q'?0:1;s.sc[t]=Math.max(0,s.sc[t]+d)}
+ if(k=='a'||k=='s'){const t=k=='a'?0:1,w=s.rd[t];s.rd[t]=Math.max(0,w+d);if(d>0&&w==1)s.sc[t]++;if(d<0&&w==2)s.sc[t]--}
+ if(k=='g'&&d>0){s.cur=Math.min(s.cur+1,s.mp.length-1);s.first=1-s.first;s.sl=Object.fromEntries(Object.entries(s.sl).filter(([x])=>x[0]=='g'));s.rd=[0,0];s.ph='draft';A=''}
+ dr();mc();save()}
+onkeydown=e=>{if(/input|select/i.test(e.target.tagName))return;K(e.key.toLowerCase(),e.shiftKey?-1:1)};
+Promise.all([loadBr(),j('maps')]).then(([,m])=>{MAPS=m.list;sync(s=>{if(ready)return;ready=1;if(s.tm)S=s;su();dr();mc()})});
+</script>

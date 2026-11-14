@@ -1,0 +1,7 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=style.css>
+<body class="ov mt"><div id=o></div><script src=common.js></script><script>
+loadBr().then(()=>sync(s=>{if(s.ph!='match'||!s.tm){o.innerHTML='';return}
+const m=s.mp[s.cur]||{},S=t=>{const x=side(s,t,0);return`<div class="sd t${t}">${x.lg}<div class=row>${x.pk}</div><div class=bx>${x.gb}${x.bn}</div></div>`},
+P=t=>[0,1].map(k=>`<i class="${s.rd[t]>k?'on':''}"></i>`).join('');
+o.innerHTML=`<div class=bar>${S(0)}<div class=mid>${s.type=='torneio'&&s.ch.l?`<img src="${s.ch.l}">`:''}<b>${s.sc[0]} - ${s.sc[1]}</b><div class=pip>${P(0)} ${P(1)}</div><small>${m.mn||''}</small></div>${S(1)}</div>`}));
+</script>

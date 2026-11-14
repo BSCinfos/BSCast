@@ -1,0 +1,6 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=style.css>
+<body class="ov dr"><div id=o></div><script src=common.js></script><script>
+loadBr().then(()=>sync(s=>{if(s.ph!='draft'||!s.tm){o.innerHTML='';return}
+const m=s.mp[s.cur]||{},S=t=>{const x=side(s,t,1);return`<div class="sd t${t}">${x.lg}<div><div class=nm>${x.nm}</div><div class=row>${x.pk}</div></div><div class=bx>${x.gb}${x.bn}</div></div>`};
+o.innerHTML=`<div class=bar>${S(0)}<div class=mid>${s.type=='torneio'&&s.ch.l?`<img src="${s.ch.l}"><small>${s.ch.n}</small>`:''}<b>${s.sc[0]} - ${s.sc[1]}</b><small>${m.mi?`<img src="${m.mi}" style="height:28px"> `:''}${m.mn||''} ${s.type=='torneio'?'· Jogo '+(s.cur+1):''}</small></div>${S(1)}</div>`}));
+</script>
