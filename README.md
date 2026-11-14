@@ -1,12 +1,9 @@
 # BSCast – overlays OBS para Brawl Stars competitivo
-Site estático (GitHub Pages): sem servidor, sem instalação.
+Site estático (GitHub Pages), sem servidor.
+- `index.html` – painel em etapas (tipo → campeonato → times → mapas → regras → draft/transmissão).
+- `overlay.html` – tela secundária: mostra o overlay de **draft** (inferior) ou de **partida** (superior) conforme a fase. `?bg=green` = fundo chroma key; `?only=draft|match` = só uma fase.
 
-- `index.html` – painel de controle (configuração, draft por clique, placar).
-- `overlay.html` – tela secundária: mostra sozinha o overlay de **draft** (inferior) ou de **partida** (superior) conforme a fase.
-
-## Uso
-1. Abra o painel e clique em **Abrir tela secundária**: abre uma janela (fundo verde).
-2. No OBS: *Captura de janela* → essa janela → filtro *Chroma Key* (verde). Ou, no OBS, *Doca de navegador* com `index.html` + *Fonte de navegador* 1920x1080 com `overlay.html` (compartilham o mesmo armazenamento).
-3. Teclas: `N` draft/partida · `Q/W` jogos · `A/S` sets · `G` próximo jogo · `Shift`+tecla desfaz.
-
-Dados e imagens: API não oficial Brawlify. Painel e overlay precisam estar na mesma origem/navegador.
+## OBS
+Botão **Abrir tela secundária** → *Captura de janela* + filtro *Chroma Key* verde. Ou doca de navegador (`index.html`) + fonte de navegador 1920x1080 (`overlay.html`).
+Teclas (etapa final): `N` draft/partida · `A/S` sets · `G` próximo jogo · `Q/W` ajuste de jogo · `Shift` desfaz.
+Dados/imagens: BrawlAPI (api.brawlapi.com, não oficial, CORS livre).
