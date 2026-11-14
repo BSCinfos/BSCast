@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BSCinfos Broadcast — Controle</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="control-body">
+<header class="app-header">
+  <div class="brand"><img src="assets/bscinfos-logo.png"><img src="assets/zth-logo.png"><div><b>BSCINFOS BROADCAST</b><small>PAINEL DE CONTROLE</small></div></div>
+  <div class="header-actions"><span id="apiStatus" class="status">Carregando dados…</span><button id="reloadData" class="ghost">Recarregar API</button></div>
+</header>
+<main class="control-layout">
+  <aside class="side-nav">
+    <div class="nav-title">CONFIGURAÇÃO</div>
+    <a href="#partida">01 · Partida</a><a href="#times">02 · Times e jogadores</a><a href="#draft">03 · Draft</a><a href="#placar">04 · Placar</a><a href="#obs">05 · Saídas OBS</a>
+    <div class="nav-note">O painel é privado. Capture somente as páginas de overlay no OBS.</div>
+  </aside>
+  <section class="workspace">
+    <section class="panel" id="partida">
+      <div class="section-heading"><div><span class="eyebrow">ETAPA 01</span><h1>Configurar partida</h1></div><span class="step-pill">SETUP</span></div>
+      <div class="grid two">
+        <label>Tipo de partida<select id="matchType"><option value="tournament">Torneio</option><option value="scrim">Scrim</option></select></label>
+        <label id="seriesWrap">Formato da série<select id="series"><option value="3">MD3 — melhor de 3</option><option value="5">MD5 — melhor de 5</option><option value="7">MD7 — melhor de 7</option></select></label>
+        <label id="eventWrap">Nome do campeonato<input id="eventName" placeholder="Ex.: Liga Masters"></label>
+        <label>Logo do campeonato<input id="eventLogo" type="file" accept="image/*"></label>
+      </div>
+      <div class="grid two">
+        <label>Modo<select id="modeSelect"><option value="">Carregando modos…</option></select></label>
+        <label>Mapa<select id="mapSelect"><option value="">Selecione um modo primeiro</option></select></label>
+      </div>
+      <label id="mapOrderWrap">Ordem de modos/mapas da série <small>Adicione cada mapa na ordem em que será jogado.</small></label>
+      <div id="mapOrderControls" class="inline-controls"><button id="addMap" class="secondary">＋ Adicionar modo/mapa atual</button><span id="mapOrderList" class="chips"></span></div>
+      <label id="firstMapWrap">Primeiro mapa da série<select id="firstMap"></select></label>
+    </section>
+
+    <section class="panel" id="times">
+      <div class="section-heading"><div><span class="eyebrow">ETAPA 02</span><h2>Times e jogadores</h2></div></div>
+      <div class="grid two">
+        <div class="team-config blue-team">
+          <h3><i></i> TIME AZUL</h3>
+          <label>Nome do time<input id="blueName" value="Time Azul"></label>
+          <label>Logo do time<input id="blueLogo" type="file" accept="image/*"></label>
+          <label>Jogadores <small>Um nome por linha (até 3).</small><textarea id="bluePlayers" rows="3" placeholder="Player 1&#10;Player 2&#10;Player 3"></textarea></label>
+        </div>
+        <div class="team-config red-team">
+          <h3><i></i> TIME VERMELHO</h3>
+          <label>Nome do time<input id="redName" value="Time Vermelho"></label>
+          <label>Logo do time<input id="redLogo" type="file" accept="image/*"></label>
+          <label>Jogadores <small>Um nome por linha (até 3).</small><textarea id="redPlayers" rows="3" placeholder="Player 1&#10;Player 2&#10;Player 3"></textarea></label>
+        </div>
+      </div>
+      <div class="grid two">
+        <label>Quem começa o draft<select id="firstPick"><option value="blue">Azul começa</option><option value="red">Vermelho começa</option></select></label>
+        <label class="checkline" id="globalWrap"><input type="checkbox" id="globalEnabled"> Ativar bans globais (2 por time)</label>
+      </div>
+    </section>
+
+    <section class="panel" id="draft">
+      <div class="section-heading"><div><span class="eyebrow">ETAPA 03</span><h2>Draft e seleção de brawlers</h2></div><span class="step-pill">LIVE SYNC</span></div>
+      <div id="globalBans" class="global-bans hidden">
+        <div><h3>Bans globais — Azul</h3><div id="blueGlobalSlots" class="slots"></div></div>
+        <div><h3>Bans globais — Vermelho</h3><div id="redGlobalSlots" class="slots"></div></div>
+      </div>
+      <div class="draft-columns">
+        <div><h3>Time azul · bans da partida</h3><div id="blueBanSlots" class="slots"></div></div>
+        <div><h3>Time vermelho · bans da partida</h3><div id="redBanSlots" class="slots"></div></div>
+      </div>
+      <div class="pick-order"><b>ORDEM DOS PICKS</b><span id="pickOrderLabel">Azul → Vermelho → Vermelho → Azul → Azul → Vermelho</span></div>
+      <div class="pick-slots" id="pickSlots"></div>
+      <div class="picker-head"><div><h3>Escolher brawler</h3><small>Clique em um espaço de ban/pick e depois escolha um brawler.</small></div><input id="brawlerSearch" placeholder="Buscar brawler…"></div>
+      <div id="brawlerGrid" class="brawler-grid"><div class="loading">Carregando brawlers…</div></div>
+      <div class="panel-actions"><button id="clearDraft" class="ghost">Limpar draft atual</button><button id="saveSetup" class="primary">Salvar e atualizar overlays</button></div>
+    </section>
+
+    <section class="panel" id="placar">
+      <div class="section-heading"><div><span class="eyebrow">ETAPA 04</span><h2>Placar da transmissão</h2></div></div>
+      <div class="score-controls">
+        <div><small>SÉRIE / TORNEIO</small><div class="score-step"><button data-score="blue" data-target="series">−</button><b id="blueSeries">0</b><button data-score="blue" data-target="series" data-delta="1">＋</button></div></div>
+        <div class="versus">VS</div>
+        <div><small>SÉRIE / TORNEIO</small><div class="score-step"><button data-score="red" data-target="series">−</button><b id="redSeries">0</b><button data-score="red" data-target="series" data-delta="1">＋</button></div></div>
+      </div>
+      <div class="score-controls compact">
+        <div><small>SETS DO GAME ATUAL · AZUL</small><div class="score-step"><button data-score="blue" data-target="sets">−</button><b id="blueSets">0</b><button data-score="blue" data-target="sets" data-delta="1">＋</button></div></div>
+        <div class="versus">SETS</div>
+        <div><small>SETS DO GAME ATUAL · VERMELHO</small><div class="score-step"><button data-score="red" data-target="sets">−</button><b id="redSets">0</b><button data-score="red" data-target="sets" data-delta="1">＋</button></div></div>
+      </div>
+      <div class="panel-actions"><button id="nextGame" class="secondary">Próximo game / resetar sets</button><button id="resetScores" class="ghost">Zerar placares</button></div>
+    </section>
+
+    <section class="panel" id="obs">
+      <div class="section-heading"><div><span class="eyebrow">ETAPA 05</span><h2>Saídas para OBS</h2></div></div>
+      <div class="obs-links">
+        <div><b>Draft inferior</b><code>http://localhost:8000/overlay.html?tela=draft</code><button class="copy" data-copy="http://localhost:8000/overlay.html?tela=draft">Copiar</button></div>
+        <div><b>Overlay da partida</b><code>http://localhost:8000/overlay.html?tela=partida</code><button class="copy" data-copy="http://localhost:8000/overlay.html?tela=partida">Copiar</button></div>
+      </div>
+      <p class="hint">Adicione cada endereço como uma Fonte de Navegador no OBS. O fundo é transparente. O painel de controle fica fora da transmissão.</p>
+      <div class="panel-actions"><button id="exportJson" class="secondary">Exportar JSON</button><label class="import-btn">Importar JSON<input id="importJson" type="file" accept="application/json"></label></div>
+    </section>
+    <footer> BSCINFOS BROADCAST · Projeto comunitário não afiliado à Supercell</footer>
+  </section>
+</main>
+<script src="app.js"></script>
+</body></html>
