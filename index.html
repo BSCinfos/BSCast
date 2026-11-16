@@ -1,0 +1,73 @@
+<!doctype html><meta charset=utf-8><title>BSCast</title><link rel=stylesheet href=style.css?v=8>
+<body class=ctl><header><img src=assets/logo1.png height=40 alt=""><h1>BSCast</h1><span id=ap>carregando dados…</span><button onclick="openOv()">Abrir tela secundária (prévia)</button><button class=sec onclick="newMatch()">Nova partida</button><button class=sec onclick="copyOv()">Copiar link p/ OBS (fundo transparente)</button></header>
+<div id=st></div><div id=app></div>
+<script src=config.js?v=8></script><script src=common.js?v=8></script><script>
+const NM=['Tipo','Campeonato','Times','Mapas','Regras','Draft e transmissão'];
+const mkS=()=>({type:'torneio',bo:3,ch:{n:'',l:'',ph:''},tp:0,ck:'',t0:0,tm:[{n:'Time Azul',l:'',p:['Player 1','Player 2','Player 3']},{n:'Time Vermelho',l:'',p:['Player 4','Player 5','Player 6']}],mp:[],cur:0,first:0,gb:false,sl:{},sc:[0,0],rd:[0,0],ph:'setup'});let S=mkS(),TL=false,UT='',ET='',MAPS=[],step=0,A='',Q='',MQ='',MS=0,MD='',ready=0;
+const $=i=>document.getElementById(i),save=()=>{S.ch.l=S.ch.l||ICONS.default;S.tm.forEach(t=>t.l=t.l||ICONS.default);fixck();push(S)},tn=()=>S.type=='torneio',e=s=>String(s).replace(/"/g,'&quot;');
+const PRI=['Gem Grab','Brawl Ball','Bounty','Heist','Hot Zone','Knockout'];
+function up(i,cb){const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const k=256/Math.max(m.width,m.height,256),c=document.createElement('canvas');c.width=m.width*k;c.height=m.height*k;c.getContext('2d').drawImage(m,0,0,c.width,c.height);cb(c.toDataURL('image/png'));save();R()};m.src=r.result};r.readAsDataURL(i.files[0])}
+const pv=()=>`<div class=pv><div class=t0><img src="${e(S.tm[0].l)}" alt=""><span>${h(S.tm[0].n)}</span></div><i>VS</i><div class=t1><span>${h(S.tm[1].n)}</span><img src="${e(S.tm[1].l)}" alt=""></div></div>`;
+const nx=d=>{if(step==2&&d>0)[0,1].forEach(saveTeam);step+=d;if(!tn()&&step==1)step+=d;if(step==5&&d>0){if(S.ph=='setup')S.sl={};S.ph='draft';save()}R()};
+const nav=()=>`<div class=nav>${step?`<button class=sec onclick="nx(-1)">← Voltar</button>`:'<span></span>'}<button onclick="nx(1)">${step==4?'Iniciar draft →':'Avançar →'}</button></div>`;
+const im=k=>`<img class=ic src="${ICONS[k]||''}" alt="" onerror="this.style.display='none'">`;
+const sel=(k,v,l,ic)=>`<button class="big ${S[k]===v?'on':''}" onclick="S.${k}=${typeof v=='string'?`'${v}'`:v};${k=='type'?`if(!tn()){S.bo=3;S.gb=false}`:''}save();R()">${ic?im(ic):''}${l}</button>`;
+function R(){window.ST=S;if(typeof ICONS.default=='string')S.tm.forEach(t=>t.l=t.l||ICONS.default);if(!tn())S.gb=false;const n=S.mp.length,want=tn()?S.bo:1;while(S.mp.length<want)S.mp.push({});S.mp.length=want;if(S.cur>=want)S.cur=0;if(MS>=want)MS=0;
+ $('st').innerHTML=NM.map((x,i)=>tn()||i!=1?`<b class="${i==step?'on':i<step?'ok':''}" onclick="step=${i};R()">${i+1}. ${x}</b>`:'').join('');
+ const T=t=>`<div class="team t${t}"><div class=th>${t?'Time Vermelho':'Time Azul'}</div><label class=lgb><img src="${e(S.tm[t].l)}" alt=""><small>Trocar</small><input type=file hidden accept=image/* onchange="up(this,d=>S.tm[${t}].l=d)"></label><input value="${e(S.tm[t].n)}" placeholder="Nome do time" oninput="S.tm[${t}].n=this.value;$('pv').innerHTML=pv();save()"><div class=pl>${[0,1,2].map(k=>`<div><span>${k+1}</span><input value="${e(S.tm[t].p[k])}" placeholder="Player ${k+1}" oninput="S.tm[${t}].p[${k}]=this.value;save()"></div>`).join('')}</div></div>`;
+ const pg=[
+ `<h2>Tipo de partida</h2><div class=opts>${sel('type','torneio','Torneio','torneio')}${sel('type','scrim','Scrim','scrim')}</div>${tn()?`<h2>Formato da série</h2><div class=opts>${[3,5,7].map(v=>sel('bo',v,'Md'+v)).join('')}</div>`:''}${nav()}`,
+ `<h2>Campeonato</h2><div class=cols><div style="display:flex;flex-direction:column;gap:6px;width:260px"><input value="${e(S.ch.n)}" placeholder="Nome do campeonato" oninput="S.ch.n=this.value;save()"><input type=file accept=image/* onchange="up(this,d=>S.ch.l=d)"><input list=fl value="${e(S.ch.ph||'')}" placeholder="Fase / chave (ex.: Quartas de final)" oninput="S.ch.ph=this.value;save()"><datalist id=fl>${FASES.map(f=>`<option value="${f}">`).join('')}</datalist><button class=sec onclick="S.ch.l=ICONS.default;save();R()">Usar ícone padrão</button></div><img src="${e(S.ch.l||ICONS.default)}" height=110 alt=""></div>${nav()}`,
+ `<h2>Times e players <button class=sec onclick="TL=!TL;R()">Anteriores</button></h2><div class=cols style="gap:18px;align-items:flex-start">${T(0)}${T(1)}${TL?teamsPanel():''}</div><div id=pv>${pv()}</div>${nav()}`,
+ `<h2>Mapas${tn()?' (ordem da série)':''}</h2><div class=slots style="gap:10px">${S.mp.map((m,i)=>`<div class="sl ${MS==i?'on':''}" onclick="MS=${i};MD=S.mp[${i}].mo||MD;R()"><span class=x title=Remover onclick="event.stopPropagation();S.mp[${i}]={};save();R()">✕</span>${m.mi?`<img src="${e(m.mi)}" alt=""> `:''}<b>Mapa ${i+1}</b><br>${h(m.mo||'—')}<br><small>${h(m.mn||'escolha ao lado')}</small></div>`).join('')}</div>
+ <div class=mpw style="margin-top:12px"><aside class=modes id=md></aside><div class=mapsp><h3>Mapas sugeridos</h3><div class=grid id=sg style="max-height:none"></div><h3>Todos os mapas do modo</h3><input placeholder="Buscar mapa" value="${e(MQ)}" oninput="MQ=this.value;mg()"><div class=grid id=mg style="max-height:none"></div></div></div>${nav()}`,
+ `<h2>Quem começa o draft?</h2><div class=opts>${sel('first',0,'First · Azul começa','first')}${sel('first',1,'Last · Vermelho começa','last')}</div>${tn()?`<h2>Bans globais</h2><div class=opts>${sel('gb',true,'Com bans globais','gban')}${sel('gb',false,'Sem bans globais')}</div>`:''}<h2>Tempo de escolha</h2><div class=opts>${[[0,'Sem tempo'],[20,'1x (20 s)'],[30,'1.5x (30 s)'],[40,'2x (40 s)']].map(([v,l])=>sel('tp',v,l,v?'time':'')).join('')}</div>${nav()}`,
+ live()][step];
+ $('app').innerHTML=`<section>${pg}</section>`;if(step==3){md();mg()}if(step==5){gr();keysUI($('ky'))}}
+// ===== biblioteca de times anteriores =====
+const lib=()=>{try{return JSON.parse(localStorage.bscast_teams||'[]')}catch{return[]}},wl=a=>{try{localStorage.bscast_teams=JSON.stringify(a)}catch{}};
+function saveTeam(t){const x=S.tm[t];if(!x.n||/^Time (Azul|Vermelho)$/.test(x.n))return;const a=lib(),i=a.findIndex(y=>y.n==x.n),r={id:i>=0?a[i].id:Date.now()+t,n:x.n,l:x.l,p:[...x.p]};i>=0?a[i]=r:a.push(r);wl(a)}
+function useT(id,t){const x=lib().find(y=>y.id==id);S.tm[t]={n:x.n,l:x.l,p:[...x.p]};UT='';save();R()}
+function delT(id){if(confirm('Excluir este time?')){wl(lib().filter(y=>y.id!=id));R()}}
+function upd(id,f,v,k){const a=lib(),x=a.find(y=>y.id==id);if(f=='p')x.p[k]=v;else x[f]=v;wl(a)}
+const edT=x=>`<div class="tr ed"><label class=lgb2><img src="${e(x.l||ICONS.default)}" alt=""><input type=file hidden accept=image/* onchange="up(this,d=>upd(${x.id},'l',d))"></label><div class=ti><input value="${e(x.n)}" placeholder="Nome do time" oninput="upd(${x.id},'n',this.value)">${[0,1,2].map(k=>`<input value="${e(x.p[k]||'')}" placeholder="Player ${k+1}" oninput="upd(${x.id},'p',this.value,${k})">`).join('')}</div><button onclick="ET='';R()">OK</button></div>`;
+function teamsPanel(){const a=lib();return `<div class=tlib><b>Times anteriores</b>${a.map(x=>ET==x.id?edT(x):`<div class=tr><img src="${e(x.l||ICONS.default)}" alt=""><div class=ti><b>${h(x.n)}</b><small>${x.p.map(h).join(' · ')}</small></div>${UT==x.id?`<button onclick="useT(${x.id},0)">Azul</button><button class=red onclick="useT(${x.id},1)">Vermelho</button>`:`<button onclick="UT=${x.id};R()">Usar</button>`}<button class=sec onclick="ET=${x.id};R()">Editar</button><button class="sec ib" title="Excluir" onclick="delT(${x.id})">🗑</button></div>`).join('')||'<small>Nenhum time salvo ainda. Os times são salvos ao avançar desta etapa.</small>'}</div>`}
+function newMatch(){if(!confirm('Começar uma nova partida? Isso apaga a configuração atual, os bans, bans globais e picks.'))return;S=mkS();step=0;A='';MS=0;MD='';save();R()}
+const nz=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+function md(){const used=tn()?S.mp.map((m,i)=>i!=MS?m.mo:null).filter(Boolean):[];if(!MODES6.includes(MD)||used.includes(MD))MD=MODES6.find(n=>!used.includes(n))||MODES6[0];
+ $('md').innerHTML=MODES6.map(n=>`<div class="card ${MD==n?'on':''} ${used.includes(n)?'off':''}" onclick="MD='${n}';R()"><img src="${e((MAPS.find(x=>x.mode==n)||{}).mimg||'')}" alt="">${n}</div>`).join('')}
+const mc=x=>{const m=S.mp[MS]||{};return `<div class="card mp ${m.mn==x.name&&m.mo==MD?'on':''}" onclick="pm(${x.id})"><img src="${e(x.img)}" alt="" loading=lazy>${h(x.name)}</div>`};
+function mg(){const sg=(SUGGESTED[MD]||[]).map(nz);$('sg').innerHTML=MAPS.filter(x=>x.mode==MD&&sg.includes(nz(x.name))).map(mc).join('')||'<small>Nenhum sugerido para este modo (edite config.js).</small>';
+ $('mg').innerHTML=MAPS.filter(x=>x.mode==MD&&x.name.toLowerCase().includes(MQ.toLowerCase())).sort((a,b)=>a.off-b.off||a.name.localeCompare(b.name)).map(mc).join('')}
+function pm(id){const x=MAPS.find(y=>y.id==id);S.mp[MS]={mo:x.mode,mn:x.name,mi:x.mimg,mm:x.img};const n=S.mp.findIndex((y,i)=>!y.mn&&i!=MS);if(n>=0)MS=n;save();R()}
+const keys=()=>[...(S.gb?['g0_0','g0_1','g1_0','g1_1']:[]),'b0_0','b0_1','b0_2','b1_0','b1_1','b1_2',...[0,1,2,3,4,5].map(i=>'p'+i)];
+function fixck(){const n=keys().find(x=>!S.sl[x])||'',c=n[0]=='p'?n:'';if(c!=S.ck){S.ck=c;S.t0=Date.now()}}
+function prev(){const m=S.mp[S.cur]||{},o=OWN(S.first),
+ sl=ks=>ks.map(x=>`<div class="sl2 ${A==x?'on':''}" onclick="A='${x}';R()" oncontextmenu="delete S.sl['${x}'];A='${x}';save();R();return false">${cellK(S,x)}</div>`).join(''),
+ grp=(l,c,k)=>`<div class="grp ${k}"><small>${l}</small><div class=gc>${c}</div></div>`;
+ const half=t=>{const a=[S.gb?grp('Globais',sl([0,1].map(i=>`g${t}_${i}`)),'g'):'',grp('Bans',sl([0,1,2].map(i=>`b${t}_${i}`)),'b'),grp('Picks',sl([0,1,2,3,4,5].filter(i=>o[i]==t).map(i=>'p'+i)),'p')];if(t)a.reverse();
+  return `<div class="half t${t}"><div class=hd><img class=lg src="${e(S.tm[t].l)}" alt=""><span>${h(S.tm[t].n)}</span></div><div class=hc>${a.join('')}</div></div>`};
+ return `<div class=pvw>${half(0)}<div class=cm>${m.mi?`<img class=mi src="${e(m.mi)}" alt="">`:''}<b>${h(m.mo||'Modo')}</b>${m.mm?`<img class=mapi src="${e(m.mm)}" alt="">`:'<div class=mapi style="height:160px;background:#1d2340"></div>'}<span>${h(m.mn||'Mapa')}</span>${im(S.first?'last':'first')}<small>${tn()?'Jogo '+(S.cur+1):'Scrim'}</small></div>${half(1)}</div>`}
+function live(){return `<h2>Draft</h2><div class=dwrap><div>${prev()}</div><div class=bl><input placeholder="Buscar brawler" value="${e(Q)}" oninput="Q=this.value;gr()"><div class=grid id=gr></div></div></div>
+ <h2 style="margin-top:16px">Transmissão</h2><p>Fase: <b>${S.ph=='draft'?'Draft':'Partida'}</b> · Jogo ${S.cur+1}${tn()?' de '+S.mp.length:''} · Placar geral <b>${S.sc.join(' x ')}</b> · Sets <b>${S.rd.join(' x ')}</b>${tn()&&Math.max(...S.sc)>=Math.ceil(S.bo/2)?' · <b style="color:var(--y)">Série decidida</b>':''}</p>
+ <div class=row2><button onclick="K('ph')">Draft ⇄ Partida</button><button onclick="K('sa')">+Set Azul</button><button onclick="K('sr')">+Set Vermelho</button><button onclick="K('ga')">Jogo Azul ±</button><button onclick="K('gr')">Jogo Verm. ±</button><button onclick="K('ng')">Próximo jogo</button></div>
+ <div class=row2><button class=sec onclick="rs('d')">Resetar draft</button><button class=sec onclick="rs('p')">Resetar placar</button><button onclick="saveDraft()">Salvar draft</button><button class=sec onclick="exportSaves()">Baixar saves (.json)</button><span id=sv style="color:var(--g)"></span></div>
+ <b>Atalhos</b> <small style="color:var(--g)">(clique no campo e aperte a tecla; Shift + tecla desfaz; F2 na tela secundária também edita)</small><div class=kyw id=ky></div>
+ <div class=nav><button class=sec onclick="step=4;R()">← Configuração</button><span></span></div>`}
+function rs(w){if(w=='d')S.sl=Object.fromEntries(Object.entries(S.sl).filter(([x])=>x[0]=='g'));else{S.sc=[0,0];S.rd=[0,0];S.cur=0}A='';save();R()}
+function saveDraft(){const sv=JSON.parse(localStorage.bscast_saves||'{}'),c=tn()?(S.ch.n||'Campeonato sem nome'):'Scrim',m=S.mp[S.cur]||{},nm=i=>BR[i]?BR[i].n:null,o=OWN(S.first),P=t=>[0,1,2,3,4,5].filter(i=>o[i]==t).map(i=>nm(S.sl['p'+i])),B=(p,t,n)=>[...Array(n).keys()].map(k=>nm(S.sl[`${p}${t}_${k}`]));
+ (sv[c]=sv[c]||{jogos:{}}).jogos['Jogo '+(S.cur+1)]={modo:m.mo,mapa:m.mn,comeca:S.first?'Vermelho':'Azul',times:[S.tm[0].n,S.tm[1].n],placar:[...S.sc],sets:[...S.rd],draft:{bansGlobais:{azul:B('g',0,2),vermelho:B('g',1,2)},bans:{azul:B('b',0,3),vermelho:B('b',1,3)},picks:{azul:P(0),vermelho:P(1)}}};
+ localStorage.bscast_saves=JSON.stringify(sv,null,1);$('sv').textContent=`Salvo: ${c} › Jogo ${S.cur+1}`}
+function exportSaves(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([localStorage.bscast_saves||'{}'],{type:'application/json'}));a.download='bscast-saves.json';a.click()}
+function gr(){const u=Object.values(S.sl);$('gr').innerHTML=BRL.filter(b=>b.name.toLowerCase().includes(Q.toLowerCase())).map(b=>`<div class="card bc ${u.includes(b.id)?'off':''}" onclick="pk(${b.id})"><img src="${e(b.img)}" alt="">${h(b.name)}</div>`).join('')||'<p>Nenhum brawler carregado.</p>'}
+function pk(id){const k=keys();if(!A)A=k.find(x=>!S.sl[x])||'';if(!A)return;S.sl[A]=id;A=k.find(x=>!S.sl[x])||'';save();R()}
+function K(a,d=1){act(S,a,d);if(a=='ng')A='';save();R()}
+onkeydown=ev=>{if(step==5)hot(ev,K)};
+function copyOv(){const u=new URL('overlay.html',location.href).href;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>alert('Link copiado:\n'+u+'\n\nOBS: Fonte > Navegador, 1920x1080, cole o link. Para painel e overlay compartilharem dados, adicione este painel em Docas > Docas de navegador personalizadas.'),()=>prompt('Copie o link:',u))}
+function openOv(){open('overlay.html?preview=1','bscast_overlay','width=1280,height=720')}
+sync(s=>{if(ready){S=s;if(step==5)R();return}ready=1;if(s.tm){S=s;if(S.ph!='setup')step=5}R()});
+(async()=>{const a=$('ap');try{await resolveIcons();if(typeof loadMaps!='function')throw'common.js desatualizado: envie TODOS os arquivos do ZIP e atualize com Ctrl+F5';
+ const[b,m]=await Promise.all([loadBr(),loadMaps()]);MAPS=m;
+ if(b.length&&m.length)a.textContent=`API ok: ${b.length} brawlers, ${m.length} mapas`;else{a.textContent='Falha ao carregar a API (veja o console)';a.className='er'}}
+ catch(x){a.textContent=String(x);a.className='er'}R()})();
+</script>
