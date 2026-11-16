@@ -1,7 +1,7 @@
-<!doctype html><meta charset=utf-8><title>BSCast</title><link rel=stylesheet href=style.css?v=6>
+<!doctype html><meta charset=utf-8><title>BSCast</title><link rel=stylesheet href=style.css?v=7>
 <body class=ctl><header><img src=assets/logo1.png height=40 alt=""><h1>BSCast</h1><span id=ap>carregando dados…</span><button onclick="openOv()">Abrir tela secundária (prévia)</button><button class=sec onclick="copyOv()">Copiar link p/ OBS (fundo transparente)</button></header>
 <div id=st></div><div id=app></div>
-<script src=config.js?v=6></script><script src=common.js?v=6></script><script>
+<script src=config.js?v=7></script><script src=common.js?v=7></script><script>
 const NM=['Tipo','Campeonato','Times','Mapas','Regras','Draft e transmissão'];
 let S={type:'torneio',bo:3,ch:{n:'',l:'',ph:''},tp:0,ck:'',t0:0,tm:[{n:'Time Azul',l:'assets/logo1.png',p:['','','']},{n:'Time Vermelho',l:'assets/logo2.png',p:['','','']}],mp:[],cur:0,first:0,gb:false,sl:{},sc:[0,0],rd:[0,0],ph:'setup'},MAPS=[],step=0,A='',Q='',MQ='',MS=0,MD='',ready=0;
 const $=i=>document.getElementById(i),save=()=>{S.ch.l=S.ch.l||ICONS.default;fixck();push(S)},tn=()=>S.type=='torneio',e=s=>String(s).replace(/"/g,'&quot;');
@@ -11,8 +11,8 @@ const pv=()=>`<div class=pv><div class=t0><img src="${e(S.tm[0].l)}" alt=""><spa
 const nx=d=>{step+=d;if(!tn()&&step==1)step+=d;if(step==5&&d>0){S.ph='draft';save()}R()};
 const nav=()=>`<div class=nav>${step?`<button class=sec onclick="nx(-1)">← Voltar</button>`:'<span></span>'}<button onclick="nx(1)">${step==4?'Iniciar draft →':'Avançar →'}</button></div>`;
 const im=k=>`<img class=ic src="${ICONS[k]||''}" alt="" onerror="this.style.display='none'">`;
-const sel=(k,v,l,ic)=>`<button class="big ${S[k]===v?'on':''}" onclick="S.${k}=${typeof v=='string'?`'${v}'`:v};${k=='type'?`if(!tn())S.bo=3;`:''}save();R()">${ic?im(ic):''}${l}</button>`;
-function R(){window.ST=S;const n=S.mp.length,want=tn()?S.bo:1;while(S.mp.length<want)S.mp.push({});S.mp.length=want;if(S.cur>=want)S.cur=0;if(MS>=want)MS=0;
+const sel=(k,v,l,ic)=>`<button class="big ${S[k]===v?'on':''}" onclick="S.${k}=${typeof v=='string'?`'${v}'`:v};${k=='type'?`if(!tn()){S.bo=3;S.gb=false}`:''}save();R()">${ic?im(ic):''}${l}</button>`;
+function R(){window.ST=S;if(!tn())S.gb=false;const n=S.mp.length,want=tn()?S.bo:1;while(S.mp.length<want)S.mp.push({});S.mp.length=want;if(S.cur>=want)S.cur=0;if(MS>=want)MS=0;
  $('st').innerHTML=NM.map((x,i)=>tn()||i!=1?`<b class="${i==step?'on':i<step?'ok':''}" onclick="step=${i};R()">${i+1}. ${x}</b>`:'').join('');
  const T=t=>`<div class="team t${t}"><div class=th>${t?'Time Vermelho':'Time Azul'}</div><label class=lgb><img src="${e(S.tm[t].l)}" alt=""><small>Trocar</small><input type=file hidden accept=image/* onchange="up(this,d=>S.tm[${t}].l=d)"></label><input value="${e(S.tm[t].n)}" placeholder="Nome do time" oninput="S.tm[${t}].n=this.value;$('pv').innerHTML=pv();save()"><div class=pl>${[0,1,2].map(k=>`<div><span>${k+1}</span><input value="${e(S.tm[t].p[k])}" placeholder="Player ${k+1}" oninput="S.tm[${t}].p[${k}]=this.value;save()"></div>`).join('')}</div></div>`;
  const pg=[

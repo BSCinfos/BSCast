@@ -26,7 +26,9 @@ const KEYS=()=>({...KD,...JSON.parse(localStorage.bscast_keys||'{}')});
 function act(s,a,d=1){
  if(a=='ph'&&s.ph!='setup')s.ph=s.ph=='draft'?'match':'draft';
  if(a=='ga'||a=='gr'){const t=a=='ga'?0:1;s.sc[t]=Math.max(0,s.sc[t]+d)}
- if(a=='sa'||a=='sr'){const t=a=='sa'?0:1,w=s.rd[t];if(d>0&&w>=2)return s;s.rd[t]=Math.max(0,w+d);if(d>0&&w==1)s.sc[t]++;if(d<0&&w==2)s.sc[t]--}
+ if(a=='sa'||a=='sr'){const t=a=='sa'?0:1,w=s.rd[t];
+  if(d>0){s.rd[t]=w+1;if(s.rd[t]>=2){s.sc[t]++;s.rd=[0,0]}} // 2 sets = +1 no placar geral, volta ao round 1
+  else if(w>0)s.rd[t]=w-1;else if(s.sc[t]>0){s.sc[t]--;s.rd[t]=1}}
  if(a=='ng'&&d>0){s.cur=Math.min(s.cur+1,s.mp.length-1);s.first=1-s.first;s.sl=Object.fromEntries(Object.entries(s.sl).filter(([x])=>x[0]=='g'));s.rd=[0,0];s.ph='draft';s.ck='';s.t0=Date.now()}
  return s}
 function keysUI(el){const k=KEYS();el.innerHTML=Object.keys(KL).map(a=>`<label>${KL[a]} <input class=ky readonly value="${k[a].toUpperCase()}" onkeydown="bind(event,'${a}',this)"></label>`).join('')}
